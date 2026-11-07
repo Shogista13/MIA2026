@@ -4,14 +4,14 @@ import numpy as np
 import pydicom as dicom
 import nibabel as nib
 
-path_TIFF = r'C:\Users\Alicja\PycharmProjects\MIA2026\Project2\cell_00077.tif'
+path_TIFF = r'cell_00077.tif'
 img_TIFF = cv.imread(path_TIFF)
 
-path_DICOM = r'C:\Users\Alicja\PycharmProjects\MIA2026\Project2\1-124.dcm'
+path_DICOM = r'1-124.dcm'
 file_DICOM = dicom.dcmread(path_DICOM)
 img_DICOM = file_DICOM.pixel_array
 
-path_NIfTI = r'C:\Users\Alicja\PycharmProjects\MIA2026\Project2\ct.nii'
+path_NIfTI = r'ct.nii'
 file_NIfTI = nib.load(path_NIfTI)
 img_NIfTI = file_NIfTI.get_fdata()
 
@@ -108,8 +108,11 @@ cv.imwrite('Project2/region_growing_DICOM.png',grown_DICOM)
 cv.waitKey(0)
 cv.destroyAllWindows()
 
-grown_NIfTI = RegionGrowing(NIfTI_prepared, (154, 112), MaxDifference, 4)
+grown_NIfTI = RegionGrowing(NIfTI_prepared, (100, 75), MaxDifference, 4)
 cv.imshow('GROWN NIfTI',grown_NIfTI)
+cv.imwrite('NiFTI.png',grown_NIfTI)
+cv.circle(NIfTI_prepared, center=(75, 100), radius=10, color=125, thickness=2)
+cv.imshow('NIfTI',NIfTI_prepared)
 cv.imwrite('Project2/region_growing_NIfTI.png',grown_NIfTI)
 cv.waitKey(0)
 cv.destroyAllWindows()
