@@ -4,14 +4,14 @@ import numpy as np
 import pydicom as dicom
 import nibabel as nib
 
-path_TIFF = r'C:\Users\student\MIA2026\Project2\cell_00077.tif'
+path_TIFF = r'C:\Users\Alicja\PycharmProjects\MIA2026\Project2\cell_00077.tif'
 img_TIFF = cv.imread(path_TIFF)
 
-path_DICOM = r'C:\Users\student\MIA2026\Project2\1-124.dcm'
+path_DICOM = r'C:\Users\Alicja\PycharmProjects\MIA2026\Project2\1-124.dcm'
 file_DICOM = dicom.dcmread(path_DICOM)
 img_DICOM = file_DICOM.pixel_array
 
-path_NIfTI = r'C:\Users\student\MIA2026\Project2\ct.nii'
+path_NIfTI = r'C:\Users\Alicja\PycharmProjects\MIA2026\Project2\ct.nii'
 file_NIfTI = nib.load(path_NIfTI)
 img_NIfTI = file_NIfTI.get_fdata()
 
@@ -34,20 +34,23 @@ def RegionGrowing(img,seed_point,condition,nbr):
         nhood = ((-1,0),(1,0),(0,-1),(0,1))
     elif nbr == 8:
         nhood = ((-1,1),(1,1),(-1,-1),(1,-1),(-1,0),(1,0),(0,-1),(0,1))
-    visited = set(seed_point)
+    visited = {seed_point}
     queue = [seed_point]
-    segmented = np.zeros(img.shape)
+    segmented = np.zeros(img.shape, dtype=np.uint8)
+    segmented[seed_point] = 255
     while len(queue) > 0:
         point = queue.pop(0)
-        if point not in visited:
+        if point in visited:
             for neighbor in nhood:
-                neighbor_x = point[0] + neighbor[0]
-                neighbor_y = point[1] + neighbor[1]
-                if 0<neighbor_x<img.shape[0] and 0<neighbor_y<img.shape[1]:
-                    if condition(img,seed_point,(neighbor_x,neighbor_y)):
-                        queue.append((point[0]+neighbor[0],point[1]+neighbor[1]))
-                        segmented[point[0]+neighbor[0],point[1]+neighbor[1]]=255
-                        visited.add(point)
+                x=neighbor_x = point[0] + neighbor[0]
+                y=neighbor_y = point[1] + neighbor[1]
+                if 0<= x <img.shape[0] and 0<=y<img.shape[1]:
+                    if (x, y) not in visited:
+                        visited.add((x, y))
+                        if condition(img,seed_point,(neighbor_x,neighbor_y)):
+                            queue.append((point[0]+neighbor[0],point[1]+neighbor[1]))
+                            segmented[point[0]+neighbor[0],point[1]+neighbor[1]]=255
+
     return segmented
 
 TIFF_prepared = Preprocess(img_TIFF.copy())
@@ -71,8 +74,8 @@ cv.waitKey(0)
 cv.destroyAllWindows()
 
 def MaxDifference(img,pt1,pt2):
-    value = abs(int(img[pt1])-int(img[pt2]))<50
-    return value
+    return abs(int(img[pt1])-int(img[pt2]))<42
+
 
 """def GROW(event,x,y,flags,param):
     if event == cv.EVENT_LBUTTONDBLCLK:
@@ -82,8 +85,31 @@ def MaxDifference(img,pt1,pt2):
 #cv.setMouseCallback('Prepared TIFF',GROW)
 #cv.waitKey(0)
 #cv.destroyAllWindows()
+"""def select_point(event, x, y, flags, param): - used to get the coordinates of the object that we want to segment
+    if event== cv.EVENT_LBUTTONDOWN:
+        print("Seed point:", (y, x))
 
-grown = RegionGrowing(TIFF_prepared, (100, 100), MaxDifference, 4)
-cv.imshow('GROWN',grown)
+cv.imshow('Select seed point', NIfTI_prepared)
+cv.setMouseCallback('Select seed point', select_point)
+cv.waitKey(0)
+cv.destroyAllWindows()"""
+
+
+
+grown_TIFF = RegionGrowing(TIFF_prepared, (416, 498), MaxDifference, 4)
+cv.imshow('GROWN TIFF',grown_TIFF)
+cv.imwrite('Project2/region_growing_TIFF.png',grown_TIFF)
+cv.waitKey(0)
+cv.destroyAllWindows()
+
+grown_DICOM = RegionGrowing(DICOM_prepared, (259, 376), MaxDifference, 4)
+cv.imshow('GROWN DICOM',grown_DICOM)
+cv.imwrite('Project2/region_growing_DICOM.png',grown_DICOM)
+cv.waitKey(0)
+cv.destroyAllWindows()
+
+grown_NIfTI = RegionGrowing(NIfTI_prepared, (154, 112), MaxDifference, 4)
+cv.imshow('GROWN NIfTI',grown_NIfTI)
+cv.imwrite('Project2/region_growing_NIfTI.png',grown_NIfTI)
 cv.waitKey(0)
 cv.destroyAllWindows()
